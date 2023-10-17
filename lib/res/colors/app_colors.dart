@@ -49,7 +49,7 @@ class AppColors implements BaseColors{
   Color get colorAccentBg => const Color(0xff00212F);
 
   @override
-  Color get colorPriperyBg => const Color(0xffF2F5FA);
+  Color get colorPrimaryBg => const Color(0xffF2F5FA);
 
   @override
   Color get colorInactiveText => const Color(0xff7B8090);

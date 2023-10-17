@@ -45,7 +45,7 @@ class ErrorScreenState extends State<ErrorScreen> {
                 SizedBox(height: 20.0),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: context.resources.color.colorPriperyBg,
+                    backgroundColor: context.resources.color.colorPrimaryBg,
                   ),
                   onPressed: () {
                     context.pushReplacementNamed(DashboardScreen.id);

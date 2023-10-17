@@ -7,7 +7,7 @@ abstract class BaseColors{
   MaterialColor get colorAccent;
 
   Color get colorAccentBg;
-  Color get colorPriperyBg;
+  Color get colorPrimaryBg;
   Color get colorCardTitleBg;
 
   //text color

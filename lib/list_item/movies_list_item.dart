@@ -1,6 +1,4 @@
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
 
 import 'package:show_booker/models/runing_movies_response.dart';
 
@@ -8,6 +6,8 @@ import '../res/app_context_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
+
+import '../widgets/Image_view_widget.dart';
 
 class MoviesListItem extends StatelessWidget {
   Films? data;
@@ -42,76 +42,65 @@ class MoviesListItem extends StatelessWidget {
             width: 220,
             child: Stack(
               children: [
-                GestureDetector(onTap: (){
-                  onCliCk("${data?.filmId}");
-                },child: MyImage(imageUrl: filmeImage??"https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg")),
+                Positioned(
+                  left: 0,
+                    right: 0,
+                    child: MyImage(
+                        imageUrl: filmeImage ??
+                            "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg")),
                 Positioned(
                   right: 0,
                   left: 0,
                   bottom: 0,
                   child: Container(
-                    decoration: BoxDecoration(color: context.resources.color.colorCardTitleBg),
-                    padding:  const EdgeInsets.symmetric(vertical: 8,horizontal: 6),
+                    decoration: BoxDecoration(
+                        color: context.resources.color.colorCardTitleBg),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 4.0,),
-
+                        SizedBox(
+                          height: 4.0,
+                        ),
                         Text(
                           data?.filmName ?? "",
                           style: TextStyle(
-                              fontSize: context.resources.dimension.smallMediumText,
+                              fontSize:
+                                  context.resources.dimension.smallMediumText,
                               fontFamily: context.resources.font.josefinSans,
                               fontWeight: FontWeight.w600,
-                              color: context.resources.color.colorSecondaryText
-                          ),
+                              color:
+                                  context.resources.color.colorSecondaryText),
                         ),
-
-                        SizedBox(height: 4.0,),
-
+                        SizedBox(
+                          height: 4.0,
+                        ),
                         Text(
                           "Rating ${data?.ageRating?.first.rating ?? ""}",
                           style: TextStyle(
-                              fontSize: context.resources.dimension.midSmallText,
+                              fontSize:
+                                  context.resources.dimension.midSmallText,
                               fontFamily: context.resources.font.josefinSans,
                               fontWeight: FontWeight.w500,
-                              color: context.resources.color.colorSecondaryText
-                          ),
+                              color:
+                                  context.resources.color.colorSecondaryText),
                         ),
-
-                        SizedBox(height: 4.0,),
+                        SizedBox(
+                          height: 4.0,
+                        ),
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
         ),
-        onTap: (){
+        onTap: () {
           onCliCk("${data?.filmId}");
         },
       ),
-    );
-  }
-}
-
-class MyImage extends StatelessWidget {
-  String imageUrl;
-
-  MyImage({required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    String imgUrl = "$imageUrl";
-// https://github.com/flutter/flutter/issues/41563
-// ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(
-      imgUrl,
-          (int _) => ImageElement()..src = imgUrl,
-    );
-    return HtmlElementView(
-      viewType: imgUrl,
     );
   }
 }

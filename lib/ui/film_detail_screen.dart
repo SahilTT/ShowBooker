@@ -4,17 +4,23 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:show_booker/bloc/film_detail/film_detail_bloc.dart';
 import 'package:show_booker/data/remote/network/ApiEndPoints.dart';
 import 'package:show_booker/enums/drawer_item_action.dart';
 import 'package:show_booker/models/film_details_response.dart';
 import 'package:show_booker/res/app_context_extension.dart';
 import 'package:show_booker/ui/film_shows_screen.dart';
+import 'package:show_booker/ui/upcoming_movie_screen.dart';
 import 'package:show_booker/utils/responsive.dart';
 import 'package:show_booker/widgets/drawer_menu.dart';
 
 import '../utils/Utils.dart';
+import '../widgets/Image_view_widget.dart';
+import '../widgets/lottie_progress_animation_widget.dart';
+import 'dashboard_screen.dart';
 import 'nearby_cinema_screen.dart';
+import 'running_movies_screen.dart';
 
 class FilmDetailScreen extends StatefulWidget {
   static const String id = "FilmDetailScreen";
@@ -48,6 +54,8 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
   late Timer _timer;
   String? genres = "";
 
+  bool isResponsed = false;
+
   FilmDetailScreenState(this.lat, this.long, this.filmID);
 
   void _startTimer() {
@@ -73,6 +81,7 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
     return BlocListener<FilmDetailBloc, FilmDetailState>(
       listener: (context, state) {
         if (state is InitGetMovieDetailState) {
+          isResponsed=false;
         } else if (state is GetMovieDetailSuceessState) {
           response = state.data!;
           if (response.images?.still != null) {
@@ -123,6 +132,8 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
               showDatesList.add(response.showDates![i]);
             }
           }
+
+          isResponsed=true;
         } else if (state is GetMovieDetailFailState) {
           print("Fail_of_film_Detail${state.errorMessage}");
         } else if (state is OnDrawerOpenState) {
@@ -152,46 +163,52 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
     // Perform the corresponding action based on the selected item
     switch (action) {
       case DrawerItemAction.Dashboard:
-        // Handle item 1 click
+        context.pushReplacementNamed(DashboardScreen.id);
         break;
       case DrawerItemAction.NowShowing:
-        // Handle item 2 click
+        print("clicked on running movie");
+
+        context.pushNamed(RunningMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
         break;
       case DrawerItemAction.Upcoming:
-        // Handle item 3 click
+      // Handle item 3 click
+        print("clicked on upcoming movie");
+        context.pushNamed(UpcomingMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
       case DrawerItemAction.NearByCinema:
-        // Navigator.of(context, rootNavigator: true).pushNamed(
-        //     NearbyCinemaScreen.id,
-        //     arguments: {"lat": lat, "long": long});
-        context.goNamed(NearbyCinemaScreen.id,queryParameters: {'lat':lat,'long':long});
+        print("clicked on Nearby cinema");
+        context.pushNamed(NearbyCinemaScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
     }
   }
+
 
   Widget mainUi(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
       drawer: (MediaQuery.of(context).size.width > 750)
           ? null
-          : DrawerMenu(
-              onItemSelected: handleItemSelected,
-            ),
+          : DrawerMenu(onItemSelected: handleItemSelected,seletedIndex: 100),
       body: SafeArea(
         child: Container(
           child: Row(
             children: [
               if (MediaQuery.of(context).size.width > 750)
                 Expanded(
-                  child: DrawerMenu(
-                    onItemSelected: handleItemSelected,
-                  ),
+                  child: DrawerMenu(onItemSelected: handleItemSelected,seletedIndex: 100,),
                 ),
+
+              if(isResponsed)
               Expanded(
                 flex: 4,
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.resources.color.colorPriperyBg),
+                      color: context.resources.color.colorPrimaryBg),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
@@ -225,7 +242,13 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
                     ),
                   ),
                 ),
-              )
+              ),
+
+              if (!isResponsed)
+                Expanded(
+                  flex: 4,
+                  child: LottieProgressAnimationWidget(),
+                )
             ],
           ),
         ),
@@ -257,114 +280,6 @@ class FilmDetailScreenState extends State<FilmDetailScreen> {
           const SizedBox(
             width: 8.0,
           ),
-        Expanded(
-          flex: 2,
-          child: Material(
-            borderRadius: BorderRadius.circular(6),
-            elevation: 2.0,
-            child: Container(
-              decoration: BoxDecoration(
-                  color: context.resources.color.colorSecondaryText,
-                  borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: TextField(
-                decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: "Seacrch Movie or location..",
-                    hintStyle: TextStyle(
-                        color: context.resources.color.colorInactiveText,
-                        fontSize: 16,
-                        fontFamily: context.resources.font.josefinSans,
-                        fontWeight: FontWeight.w400),
-                    border: InputBorder.none,
-                    prefixIconColor: context.resources.color.colorInactiveText),
-                style: TextStyle(
-                    color: context.resources.color.colorInactiveText,
-                    fontSize: 18,
-                    fontFamily: context.resources.font.josefinSans,
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-        ),
-        if (Responsive.isDesktop(context)) Expanded(child: Container()),
-        const SizedBox(
-          width: 4.0,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  border: Border.all(
-                      color: context.resources.color.colorAccentBg, width: 2.0),
-                  borderRadius: const BorderRadius.all(Radius.circular(6.0))),
-              padding: const EdgeInsets.symmetric(horizontal: 2.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      // Show location selection popup
-                    },
-                    icon: Icon(
-                      Icons.location_pin,
-                      color: context.resources.color.colorAccentBg,
-                    ),
-                  ),
-                  if (!Responsive.isMobile(context))
-                    Text(
-                      "Select City..",
-                      style: TextStyle(
-                          color: context.resources.color.colorPrimaryText,
-                          fontSize: 16,
-                          fontFamily: context.resources.font.josefinSans,
-                          fontWeight: FontWeight.w400),
-                    ),
-                  if (!Responsive.isMobile(context))
-                    IconButton(
-                      onPressed: () {
-                        // Show location selection popup
-                      },
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: context.resources.color.colorAccentBg,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              width: 2.0,
-            ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                  color: context.resources.color.colorAccentBg,
-                  borderRadius: const BorderRadius.all(Radius.circular(6.0))),
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent),
-                child: Text(
-                  "SignUp",
-                  style: TextStyle(
-                      color: context.resources.color.colorSecondaryText,
-                      fontSize: 16,
-                      fontFamily: context.resources.font.josefinSans,
-                      fontWeight: FontWeight.w400),
-                ),
-              ),
-            ),
-            const SizedBox(
-              width: 2.0,
-            ),
-            if (!Responsive.isMobile(context))
-              const SizedBox(
-                width: 8.0,
-              ),
-          ],
-        ),
       ],
     );
   }

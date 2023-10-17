@@ -1,5 +1,8 @@
+import 'package:universal_html/html.dart' as html;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:show_booker/bloc/film_shows/film_shows_bloc.dart';
 import 'package:show_booker/list_item/film_shows_list_item.dart';
 import 'package:show_booker/models/film_shows_response.dart';
@@ -11,8 +14,12 @@ import '../enums/drawer_item_action.dart';
 import '../utils/Utils.dart';
 import '../utils/responsive.dart';
 import '../widgets/drawer_menu.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+
+import '../widgets/lottie_progress_animation_widget.dart';
+import 'dashboard_screen.dart';
+import 'nearby_cinema_screen.dart';
+import 'running_movies_screen.dart';
+import 'upcoming_movie_screen.dart';
 
 class FilmShowScreen extends StatefulWidget {
   static const String id = "FilmShowsScreen";
@@ -39,6 +46,8 @@ class FilmShowScreenState extends State<FilmShowScreen> {
   String? filmID;
   String? date;
 
+  bool isResponsed = false;
+
   FilmShowScreenState(this.lat, this.long, this.filmID, this.date);
 
   @override
@@ -58,6 +67,7 @@ class FilmShowScreenState extends State<FilmShowScreen> {
     return BlocListener<FilmShowsBloc, FilmShowsState>(
       listener: (context, state) {
         if (state is InitGetMovieShowsState) {
+          isResponsed=false;
         } else if (state is GetMovieShowsSuceessState) {
           response = state.data!;
 
@@ -66,6 +76,8 @@ class FilmShowScreenState extends State<FilmShowScreen> {
               cinemaList.add(response.cinemas![i]);
             }
           }
+
+          isResponsed=true;
         } else if (state is GetMovieShowsFailState) {
           print("Fail_of_film_Detail -${state.errorMessage}");
         } else if (state is OnDrawerOpenState) {
@@ -99,24 +111,22 @@ class FilmShowScreenState extends State<FilmShowScreen> {
       key: scaffoldKey,
       drawer: (MediaQuery.of(context).size.width > 750)
           ? null
-          : DrawerMenu(
-              onItemSelected: handleItemSelected,
-            ),
+          : DrawerMenu(onItemSelected: handleItemSelected,seletedIndex: 100,),
       body: SafeArea(
         child: Container(
           child: Row(
             children: [
               if (MediaQuery.of(context).size.width > 750)
                 Expanded(
-                  child: DrawerMenu(
-                    onItemSelected: handleItemSelected,
-                  ),
+                  child: DrawerMenu(onItemSelected: handleItemSelected,seletedIndex: 100,),
                 ),
+
+              if(isResponsed)
               Expanded(
                 flex: 4,
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.resources.color.colorPriperyBg),
+                      color: context.resources.color.colorPrimaryBg),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
@@ -136,7 +146,13 @@ class FilmShowScreenState extends State<FilmShowScreen> {
                     ),
                   ),
                 ),
-              )
+              ),
+
+              if (!isResponsed)
+                Expanded(
+                  flex: 4,
+                  child: LottieProgressAnimationWidget(),
+                )
             ],
           ),
         ),
@@ -405,20 +421,33 @@ class FilmShowScreenState extends State<FilmShowScreen> {
     );
   }
 
+
   void handleItemSelected(DrawerItemAction action) {
     // Perform the corresponding action based on the selected item
     switch (action) {
       case DrawerItemAction.Dashboard:
-        // Handle item 1 click
+        context.pushReplacementNamed(DashboardScreen.id);
         break;
       case DrawerItemAction.NowShowing:
-        // Handle item 2 click
+        print("clicked on running movie");
+
+        context.pushNamed(RunningMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
         break;
       case DrawerItemAction.Upcoming:
-        // Handle item 3 click
+      // Handle item 3 click
+        print("clicked on upcoming movie");
+        context.pushNamed(UpcomingMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
       case DrawerItemAction.NearByCinema:
+        print("clicked on Nearby cinema");
+        context.pushNamed(NearbyCinemaScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
     }
   }
+
 }

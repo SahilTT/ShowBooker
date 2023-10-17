@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:universal_html/html.dart' as html;
+
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:show_booker/bloc/cinema_detail/cinema_detail_bloc.dart';
 import 'package:show_booker/data/remote/network/ApiEndPoints.dart';
 import 'package:show_booker/enums/drawer_item_action.dart';
@@ -12,13 +15,17 @@ import 'package:show_booker/models/cinema_shows_response.dart';
 import 'package:show_booker/res/app_context_extension.dart';
 import 'package:show_booker/utils/responsive.dart';
 import 'package:show_booker/widgets/drawer_menu.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../models/cinema_detail_respons.dart';
 import '../utils/Utils.dart';
 import '../widgets/booking_confirmation_bottom_sheet.dart';
+import '../widgets/lottie_progress_animation_widget.dart';
+import 'dashboard_screen.dart';
+import 'nearby_cinema_screen.dart';
+import 'running_movies_screen.dart';
+import 'upcoming_movie_screen.dart';
 
 class CinemaDetailScreen extends StatefulWidget {
   static const String id = "CinemaDetail";
@@ -41,6 +48,8 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
   String? long;
   String? cinemaID;
 
+  bool isResponse= false;
+
   List<ShowDates> showDatesList = <ShowDates>[];
   List<Films> filmsList = <Films>[];
 
@@ -56,6 +65,7 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
     return BlocListener<CinemaDetailBloc, CinemaDetailState>(
       listener: (context, state) {
         if (state is InitGetCinemaDetailState) {
+          isResponse=false;
         }
         else if (state is GetCinemaDetailSuceessState) {
           respons = state.data!;
@@ -65,6 +75,8 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
               showDatesList.add(respons.showDates![i]);
             }
           }
+
+          isResponse=true;
         }
 
         else if (state is GetCinemaDetailFailState) {
@@ -132,15 +144,26 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
     // Perform the corresponding action based on the selected item
     switch (action) {
       case DrawerItemAction.Dashboard:
-        // Handle item 1 click
+        context.pushReplacementNamed(DashboardScreen.id);
         break;
       case DrawerItemAction.NowShowing:
-        // Handle item 2 click
+        print("clicked on running movie");
+
+        context.goNamed(RunningMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
         break;
       case DrawerItemAction.Upcoming:
-        // Handle item 3 click
+      // Handle item 3 click
+        print("clicked on upcoming movie");
+        context.goNamed(UpcomingMovieScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
       case DrawerItemAction.NearByCinema:
+        print("clicked on Nearby cinema");
+        context.goNamed(NearbyCinemaScreen.id,
+            queryParameters: {'lat': lat, 'long': long});
+
         break;
     }
   }
@@ -151,7 +174,7 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
       drawer: (MediaQuery.of(context).size.width > 750)
           ? null
           : DrawerMenu(
-              onItemSelected: handleItemSelected,
+              onItemSelected: handleItemSelected,seletedIndex: 100,
             ),
       body: SafeArea(
         child: Container(
@@ -160,14 +183,16 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
               if (MediaQuery.of(context).size.width > 750)
                 Expanded(
                   child: DrawerMenu(
-                    onItemSelected: handleItemSelected,
+                    onItemSelected: handleItemSelected,seletedIndex: 100,
                   ),
                 ),
+
+              if(isResponse)
               Expanded(
                 flex: 4,
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.resources.color.colorPriperyBg),
+                      color: context.resources.color.colorPrimaryBg),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
@@ -194,7 +219,14 @@ class CinemaDetailScreenState extends State<CinemaDetailScreen> {
                     ),
                   ),
                 ),
-              )
+              ),
+
+              if (!isResponse)
+                Expanded(
+                  flex: 4,
+                  child:LottieProgressAnimationWidget(),
+                )
+
             ],
           ),
         ),

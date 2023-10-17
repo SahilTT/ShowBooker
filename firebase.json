@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "showbooker",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",

@@ -1,18 +1,24 @@
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:show_booker/bloc/dashboard/dashboard_bloc.dart';
 import 'package:show_booker/data/remote/network/ApiEndPoints.dart';
 import 'package:show_booker/list_item/movies_list_item.dart';
 import 'package:show_booker/list_item/releaseing_movies_list_item.dart';
 import 'package:show_booker/res/app_context_extension.dart';
+import 'package:show_booker/ui/running_movies_screen.dart';
+import 'package:show_booker/ui/upcoming_movie_screen.dart';
 import 'package:show_booker/utils/Utils.dart';
 import 'package:show_booker/utils/responsive.dart';
 import 'package:show_booker/widgets/drawer_menu.dart';
 
 import '../enums/drawer_item_action.dart';
 import '../models/runing_movies_response.dart';
+import '../utils/custom_progress_dialog.dart';
+import '../widgets/lottie_progress_animation_widget.dart';
 import 'film_detail_screen.dart';
 import 'nearby_cinema_screen.dart';
 
@@ -32,25 +38,44 @@ class DashboardScreenState extends State<DashboardScreen> {
   RuningMoviesResponse responseUpComing = RuningMoviesResponse();
   String? city;
   String? resposeJ;
+  bool isRunnigDone = false;
+  bool isUpcomingDone = false;
+
+  late CustomProgressDialog pr;
 
   @override
   Widget build(BuildContext context) {
+    pr = CustomProgressDialog(context);
+
     return BlocListener<DashboardBloc, DashboardState>(
       listener: (context, state) {
         if (state is OnDrawerOpenState) {
         } else if (state is OnDrawerOpenState) {
         } else if (state is InitGetRuningMovie) {
-          print("Get Runing Movie begun");
+          isRunnigDone = false;
+          // if(!pr.isShowing()){
+          //   pr.show();
+          // }
         } else if (state is GetRuningMovieFail) {
-          print("Error at runing movie is ${state.errorMessage}");
+          isRunnigDone = true;
+          // checkDoneAndHideProgress();
         } else if (state is GetRuningMovieSuceess) {
           response = state.data!;
+          isRunnigDone = true;
+          // checkDoneAndHideProgress();
         } else if (state is InitGetUpComingMovie) {
-          print("Get upcoming Movie begun");
+          isUpcomingDone = false;
+          // if(!pr.isShowing()){
+          //   pr.show();
+          // }
         } else if (state is GetUpComingMovieFail) {
           print("Error at upcoming movie is ${state.errorMessage}");
+          isUpcomingDone = true;
+          // checkDoneAndHideProgress();
         } else if (state is GetUpComingMovieSuceess) {
           responseUpComing = state.data!;
+          isUpcomingDone = true;
+          // checkDoneAndHideProgress();
         } else if (state is LocationServiceOffState) {
           print("error: ${state.error}");
         } else if (state is LocationDeniedState) {
@@ -58,6 +83,10 @@ class DashboardScreenState extends State<DashboardScreen> {
         } else if (state is LocationdeniedForeverState) {
           print("error: ${state.error}");
         } else if (state is LocationSuceessState) {
+          // if(!pr.isShowing()){
+          //   pr.show();
+          // }
+
           String? lat = state.position?.latitude.toString();
           String? long = state.position?.longitude.toString();
           String currentTime = Utils().getCurrentTimeFormatted();
@@ -90,12 +119,17 @@ class DashboardScreenState extends State<DashboardScreen> {
         } else if (state is OnDrawerOpenState) {
           scaffoldKey.currentState!.closeDrawer();
         } else if (state is InitGetRuningMovie) {
+          isRunnigDone = false;
         } else if (state is GetRuningMovieFail) {
+          isRunnigDone = true;
         } else if (state is GetRuningMovieSuceess) {
-          response = state.data!;
+          isRunnigDone = true;
+        } else if (state is InitGetUpComingMovie) {
+          isUpcomingDone = false;
         } else if (state is GetUpComingMovieFail) {
+          isUpcomingDone = true;
         } else if (state is GetUpComingMovieSuceess) {
-          responseUpComing = state.data!;
+          isUpcomingDone = true;
         } else if (state is LocationServiceOffState) {
         } else if (state is LocationDeniedState) {
         } else if (state is LocationdeniedForeverState) {
@@ -110,23 +144,35 @@ class DashboardScreenState extends State<DashboardScreen> {
     // Perform the corresponding action based on the selected item
     switch (action) {
       case DrawerItemAction.Dashboard:
-        // Handle item 1 click
+        // context.pushReplacementNamed(DashboardScreen.id);
         break;
       case DrawerItemAction.NowShowing:
-        // Handle item 2 click
+        print("clicked on running movie");
+
+        context.pushNamed(RunningMovieScreen.id,
+            queryParameters: {'lat': gLat, 'long': gLong});
         break;
       case DrawerItemAction.Upcoming:
         // Handle item 3 click
+        print("clicked on upcoming movie");
+        context.pushNamed(UpcomingMovieScreen.id,
+            queryParameters: {'lat': gLat, 'long': gLong});
+
         break;
       case DrawerItemAction.NearByCinema:
-        print("clcked on Nearby cinema");
-        // Navigator.of(context, rootNavigator: true).pushNamed(
-        //     NearbyCinemaScreen.id,
-        //     arguments: {"lat": gLat, "long": gLong});
-
-        context.pushNamed(NearbyCinemaScreen.id,queryParameters: {'lat':gLat,'long':gLong});
+        print("clicked on Nearby cinema");
+        context.pushNamed(NearbyCinemaScreen.id,
+            queryParameters: {'lat': gLat, 'long': gLong});
 
         break;
+    }
+  }
+
+  void checkDoneAndHideProgress() {
+    if (isRunnigDone && isUpcomingDone) {
+      if (pr.isShowing()) {
+        pr.hide();
+      }
     }
   }
 
@@ -135,7 +181,10 @@ class DashboardScreenState extends State<DashboardScreen> {
       key: scaffoldKey,
       drawer: (MediaQuery.of(context).size.width > 750)
           ? null
-          : DrawerMenu(onItemSelected: handleItemSelected),
+          : DrawerMenu(
+              onItemSelected: handleItemSelected,
+              seletedIndex: DrawerItemAction.Dashboard.index,
+            ),
       body: SafeArea(
         child: Container(
           child: Row(
@@ -144,46 +193,51 @@ class DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: DrawerMenu(
                     onItemSelected: handleItemSelected,
+                    seletedIndex: DrawerItemAction.Dashboard.index,
                   ),
                 ),
-              Expanded(
-                flex: 4,
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: context.resources.color.colorPriperyBg),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
+              if (isRunnigDone && isUpcomingDone)
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: context.resources.color.colorPrimaryBg),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 6.0,
+                            ),
 
-                          const SizedBox(
-                            height: 6.0,
-                          ),
+                            AppBarMenu(context),
 
-                          AppBarMenu(context),
+                            const SizedBox(
+                              height: 20.0,
+                            ),
 
-                          const SizedBox(
-                            height: 20.0,
-                          ),
+                            RunigMoviesList(context),
 
-                          // PageWidget(context),
-                          RunigMoviesList(context),
+                            const SizedBox(
+                              height: 20.0,
+                            ),
 
-                          const SizedBox(
-                            height: 20.0,
-                          ),
+                            UpcomingMoviesList(context),
 
-                          // PageWidget(context),
-                          UpcomingMoviesList(context),
-
-                        ],
+                            // if(!isRunnigDone || !isUpcomingDone)
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              )
+              if (!isRunnigDone || !isUpcomingDone)
+                Expanded(
+                  flex: 4,
+                  child: LottieProgressAnimationWidget(),
+                )
             ],
           ),
         ),
@@ -328,21 +382,6 @@ class DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Widget PageWidget(BuildContext context) {
-  //   return Container(
-  //     height: 360,
-  //     color: context.resources.color.colorAccentBg,
-  //     child: PageView.builder(
-  //         itemCount: response.films?.length,
-  //         itemBuilder: (context, index) {
-  //           print(response.films?[index].images?.poster?.items?[1]?.medium
-  //                   ?.filmImage ??
-  //               '');
-  //           return MyImage(imageUrl: response.films?[index].images?.poster?.items?[1]?.medium?.filmImage ??"",);
-  //         }),
-  //   );
-  // }
-
   final ScrollController controller = ScrollController();
 
   Widget RunigMoviesList(BuildContext context) {
@@ -382,15 +421,9 @@ class DashboardScreenState extends State<DashboardScreen> {
                 if (response.films != null) {
                   return MoviesListItem(
                       onCliCk: (filmID) {
-                        //
-                        // Navigator.of(context, rootNavigator: true).pushNamed(FilmDetailScreen.id,
-                        //     arguments: {"lat": gLat,"long":gLong,"filmID":filmID!});
-                        //
-
                         context.goNamed(FilmDetailScreen.id,
                             pathParameters: {'filmId': filmID!},
                             queryParameters: {'lat': gLat, 'long': gLong});
-
                       },
                       data: response.films![index]);
                 }

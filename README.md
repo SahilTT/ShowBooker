@@ -4,11 +4,9 @@ Show Booker is a movie ticket booking app that allows users to easily find and b
 
 ## Table of Contents
 1. [Features](#features)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Screenshots](#screenshots)
-5. [Contributing](#contributing)
-6. [License](#license)
+2. [Usage](#usage)
+3. [Screenshots](#screenshots)
+
 
 ## Features
 

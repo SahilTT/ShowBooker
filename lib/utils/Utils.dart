@@ -1,6 +1,4 @@
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -46,25 +44,5 @@ class Utils {
     double kilometers = miles * kilometersPerMile;
     String result = kilometers.toStringAsFixed(1);
     return result;
-  }
-}
-
-class MyImage extends StatelessWidget {
-  String imageUrl;
-
-  MyImage({required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    String imgUrl = "$imageUrl";
-// https://github.com/flutter/flutter/issues/41563
-// ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(
-      imgUrl,
-          (int _) => ImageElement()..src = imgUrl,
-    );
-    return HtmlElementView(
-      viewType: imgUrl,
-    );
   }
 }

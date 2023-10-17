@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:show_booker/bloc/nearby_cinemas/nearby_cinema_bloc.dart';
 import 'package:show_booker/list_item/cinema_item.dart';
 import 'package:show_booker/models/nearby_cineam_response.dart';
@@ -8,11 +10,15 @@ import 'package:show_booker/models/nearby_cineam_response.dart';
 import 'package:show_booker/res/app_context_extension.dart';
 import 'package:show_booker/utils/responsive.dart';
 import 'package:show_booker/widgets/drawer_menu.dart';
+import 'package:show_booker/widgets/lottie_progress_animation_widget.dart';
 
 import '../data/remote/network/ApiEndPoints.dart';
 import '../enums/drawer_item_action.dart';
 import '../utils/Utils.dart';
 import 'cinema_detail_screen.dart';
+import 'dashboard_screen.dart';
+import 'running_movies_screen.dart';
+import 'upcoming_movie_screen.dart';
 
 class NearbyCinemaScreen extends StatefulWidget {
   static const String id = "NearByCinema";
@@ -33,6 +39,8 @@ class NearbyCinemaScreenState extends State<NearbyCinemaScreen> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String? city;
 
+  bool isResponse = false;
+
   String? lat;
   String? long;
   NearByCineamResponse response = NearByCineamResponse();
@@ -44,8 +52,10 @@ class NearbyCinemaScreenState extends State<NearbyCinemaScreen> {
     return BlocListener<NearbyCinemaBloc, NearbyCinemaState>(
       listener: (context, state) {
         if (state is InitGetNearByCinemaState) {
+          isResponse = false;
         } else if (state is GetNearByCinemaSuceessState) {
           response = state.data!;
+          isResponse = true;
         } else if (state is GetNearByCinemaFailState) {
           print("Fail_of_nearby_cinema - ${state.errorMessage}");
         } else if (state is OnDrawerOpenState) {
@@ -71,19 +81,28 @@ class NearbyCinemaScreenState extends State<NearbyCinemaScreen> {
     // Perform the corresponding action based on the selected item
     switch (action) {
       case DrawerItemAction.Dashboard:
-        // Handle item 1 click
+        context.pushReplacementNamed(DashboardScreen.id);
         break;
       case DrawerItemAction.NowShowing:
-        // Handle item 2 click
+        print("clicked on running movie");
+
+        context.pushNamed(RunningMovieScreen.id,
+            queryParameters: {'lat': gLat, 'long': gLong});
         break;
       case DrawerItemAction.Upcoming:
-        // Handle item 3 click
+      // Handle item 3 click
+        print("clicked on upcoming movie");
+        context.pushNamed(UpcomingMovieScreen.id,
+            queryParameters: {'lat': gLat, 'long': gLong});
+
         break;
       case DrawerItemAction.NearByCinema:
-        // Handle item 3 click
+        print("clicked on Nearby cinema");
+
         break;
     }
   }
+
 
   Widget mainUi(BuildContext context) {
     return Scaffold(
@@ -92,6 +111,7 @@ class NearbyCinemaScreenState extends State<NearbyCinemaScreen> {
           ? null
           : DrawerMenu(
               onItemSelected: handleItemSelected,
+              seletedIndex: DrawerItemAction.NearByCinema.index,
             ),
       body: SafeArea(
         child: Container(
@@ -101,33 +121,41 @@ class NearbyCinemaScreenState extends State<NearbyCinemaScreen> {
                 Expanded(
                   child: DrawerMenu(
                     onItemSelected: handleItemSelected,
+                    seletedIndex: DrawerItemAction.NearByCinema.index,
                   ),
                 ),
-              Expanded(
-                flex: 4,
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: context.resources.color.colorPriperyBg),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 6.0,
-                          ),
-                          AppBarMenu(context),
-                          const SizedBox(
-                            height: 12.0,
-                          ),
-                          if (response.cinemas != null) CinamaListUi(context),
-                        ],
+              if (isResponse)
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: context.resources.color.colorPrimaryBg),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 6.0,
+                            ),
+                            AppBarMenu(context),
+                            const SizedBox(
+                              height: 12.0,
+                            ),
+                            if (response.cinemas != null) CinamaListUi(context),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              )
+
+              if (!isResponse)
+                Expanded(
+                  flex: 4,
+                  child:LottieProgressAnimationWidget(),
+                )
             ],
           ),
         ),

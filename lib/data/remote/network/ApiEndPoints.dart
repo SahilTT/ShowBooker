@@ -18,6 +18,7 @@ class ApiEndPoints {
   static String sortPopularityParam = "sort=popularity";
   static String timeParam = "time=";
 
+  //Api EndPoints
   static String runingMovieUrl = "filmsNowShowing";
   static String upComingMovieUrl = "filmsComingSoon";
   static String getFilmDetailUrl = "filmDetails/?$filmIDParam";
@@ -26,6 +27,7 @@ class ApiEndPoints {
   static String cinemaShowTimesUrl = "cinemaShowTimes/?";
   static String filmShowTimesUrl = "filmShowTimes/?";
   static String purcheseConfirmationUrl = "purchaseConfirmation/?";
+
 
   //Live credantials
   // static String client = "NA_31";
